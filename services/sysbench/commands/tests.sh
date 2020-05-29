@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+mkdir -p /reports
+
 sysbench select \
     --mysql-host=playground-db \
     --mysql-port=3306 \
@@ -8,7 +10,7 @@ sysbench select \
     --mysql-db=playground-db \
     --threads=1 \
     --time=60 \
-    run > /tmp/select_1_thread.txt
+    run > /reports/select_1_thread.txt
 
 sysbench select \
     --mysql-host=playground-db \
@@ -18,7 +20,7 @@ sysbench select \
     --mysql-db=playground-db \
     --threads=10 \
     --time=60 \
-    run > /tmp/select_10_threads.txt
+    run > /reports/select_10_threads.txt
 
 sysbench insert \
     --mysql-host=playground-db \
@@ -28,7 +30,7 @@ sysbench insert \
     --mysql-db=playground-db \
     --threads=1 \
     --time=60 \
-    run > /tmp/insert_1_thread.txt
+    run > /reports/insert_1_thread.txt
 
 sysbench insert \
     --mysql-host=playground-db \
@@ -38,4 +40,4 @@ sysbench insert \
     --mysql-db=playground-db \
     --threads=10 \
     --time=60 \
-    run > /tmp/insert_10_threads.txt
+    run > /reports/insert_10_threads.txt

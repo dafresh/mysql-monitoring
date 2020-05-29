@@ -103,6 +103,7 @@ services:
     tty: true
     volumes:
       - ./services/sysbench/commands:/commands
+      - ./services/sysbench/reports:/reports
       - ./services/sysbench/tests:/usr/share/sysbench
 
 volumes:

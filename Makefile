@@ -12,3 +12,6 @@ reload:
 
 prepare-db:
 	docker exec -it playground-app php /commands/prepare.php
+
+benchmark:
+	docker exec -it playground-sysbench bash /commands/tests.sh
