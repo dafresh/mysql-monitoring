@@ -1,0 +1,110 @@
+version: '3'
+
+services:
+
+  playground-anemometer:
+    command: ["php", "-S", "0.0.0.0:80"]
+    container_name: playground-anemometer
+    image: boxinc/anemometer
+    volumes:
+      - ./services/anemometer/config/anemometer:/var/www/html/conf
+      - playground-db:/var/lib/mysql
+    ports:
+      - 80:80
+
+  playground-app:
+    build: ./services/app
+    command: ["cron", "-f"]
+    container_name: playground-app
+    volumes:
+      - ./services/app/commands:/commands
+
+  playground-db:
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: playground-db
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+      MYSQL_DATABASE: playground-db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ''
+    image: mysql:8.0
+    ports:
+      - 3306:3306
+    volumes:
+      - ./services/mysql/dump:/docker-entrypoint-initdb.d
+      - ./services/mysql/config/supervisor:/etc/supervisor/conf.d
+      - ./services/mysql/config/mysql:/etc/mysql/conf.d
+      - playground-db:/var/lib/mysql
+
+  playground-grafana:
+    container_name: playground-grafana
+    image: grafana/grafana:6.7.3
+    ports:
+      - 3000:3000
+    volumes:
+      - ./services/grafana/provisioning/dashboards:/var/lib/grafana/dashboards
+      - ./services/grafana/config:/etc/grafana/provisioning
+
+  playground-mysqld-exporter:
+    command: [
+      "--collect.engine_innodb_status",
+      "--collect.info_schema.clientstats",
+      "--collect.info_schema.innodb_metrics",
+      "--collect.info_schema.innodb_tablespaces",
+      "--collect.perf_schema.file_events",
+      "--collect.info_schema.innodb_cmp",
+      "--collect.info_schema.processlist",
+    ]
+    container_name: playground-mysqld-exporter
+    image: prom/mysqld-exporter
+    ports:
+      - 9104:9104
+    environment:
+      DATA_SOURCE_NAME: "root@(playground-db:3306)/"
+
+  playground-node-exporter:
+    command: [
+      "--path.procfs=/host/proc",
+      "--path.rootfs=/rootfs",
+      "--path.sysfs=/host/sys",
+      "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)",
+    ]
+    container_name: playground-node-exporter
+    image: prom/node-exporter
+    ports:
+      - 9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+
+  playground-prometheus:
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    container_name: playground-prometheus
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./services/prometheus/config:/etc/prometheus/
+
+  playground-slow-log-cron:
+    build: ./services/slow-log-cron
+    command: ["cron", "-f"]
+    container_name: playground-slow-log-cron
+    volumes:
+      - ./services/slow-log-cron/commands:/commands
+      - ./services/slow-log-cron/config/logrotate:/etc/logrotate.d
+      - playground-db:/var/lib/mysql
+
+  playground-sysbench:
+    container_name: playground-sysbench
+    image: severalnines/sysbench
+    tty: true
+    volumes:
+      - ./services/sysbench/commands:/commands
+      - ./services/sysbench/tests:/usr/share/sysbench
+
+volumes:
+  playground-db:
+    driver: local

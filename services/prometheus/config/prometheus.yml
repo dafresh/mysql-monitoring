@@ -1,0 +1,10 @@
+global:
+  scrape_interval:     5s
+
+scrape_configs:
+  - job_name: 'playground-db'
+    static_configs:
+      - targets:
+          - playground-mysqld-exporter:9104 # mysqld_exporter
+      - targets:
+          - playground-node-exporter:9100 # node_exporter

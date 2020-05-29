@@ -1,0 +1,2 @@
+5-9,15-19,25-29,35-39,45-49,55-59 * * * * /usr/local/bin/php /commands/scheduled_select_small.php
+0-2,10-12,20-22,30-32,40-42,50-52 * * * * /usr/local/bin/php /commands/scheduled_select_big.php
